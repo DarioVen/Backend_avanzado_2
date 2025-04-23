@@ -1,0 +1,25 @@
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Profile</h2>
+        <div id="userInfo">
+            Loading...
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onload = async () => {
+        const response = await fetch('/api/sessions/current');
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('userInfo').innerHTML = `
+                <p><strong>Name:</strong> ${user.first_name} ${user.last_name}</p>
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Age:</strong> ${user.age}</p>
+                <p><strong>Role:</strong> ${user.role}</p>
+            `;
+        } else {
+            window.location.href = '/';
+        }
+    };
+</script>

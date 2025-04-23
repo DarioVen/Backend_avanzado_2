@@ -1,0 +1,54 @@
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Register</h2>
+        <form id="registerForm">
+            <div class="mb-3">
+                <label class="form-label">First Name:</label>
+                <input type="text" class="form-control" name="first_name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Last Name:</label>
+                <input type="text" class="form-control" name="last_name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email:</label>
+                <input type="email" class="form-control" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Age:</label>
+                <input type="number" class="form-control" name="age" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password:</label>
+                <input type="password" class="form-control" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+        <p class="mt-3">Already have an account? <a href="/">Login here</a></p>
+    </div>
+</div>
+
+<script>
+    const registerForm = document.getElementById('registerForm');
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(registerForm);
+        try {
+            const response = await fetch('/api/sessions/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            });
+            if (response.ok) {
+                window.location.href = '/login';
+            } else {
+                const error = await response.json();
+                alert(error.error || 'Registration failed');
+            }
+        } catch (error) {
+            alert('Error connecting to server');
+        }
+    });
+</script>

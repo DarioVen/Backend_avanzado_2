@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import User from '../models/user.model.js';
+
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
-const passport = require('passport');
 
 router.post('/register', async (req, res) => {
     try {
@@ -47,4 +48,4 @@ router.get('/current', passport.authenticate('jwt', { session: false }), (req, r
     res.json(req.user);
 });
 
-module.exports = router;
+export default router;

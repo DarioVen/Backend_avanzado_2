@@ -1,24 +1,56 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
-const passport = require('./config/passport.config');
-const sessionsRouter = require('./routes/sessions.router');
+import express from 'express';
+import { initMongoDB } from './config/mongodb.config.js';
+import cookieParser from 'cookie-parser';
+import { engine } from 'express-handlebars';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
+import passport from './config/passport.config.js';
+import sessionsRouter from './routes/sessions.router.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
+
+// Handlebars setup
+app.engine('handlebars', engine());
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'handlebars');
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(passport.initialize());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/your_database')
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('Error connecting to MongoDB:', err));
+initMongoDB().then(() => {
+    console.log('Conectado a MongoDB');
+}).catch((error) => {
+    console.log(error);
+    throw 'Error al conectar a la base de datos';
+});
 
 // Routes
 app.use('/api/sessions', sessionsRouter);
+
+// View routes
+app.get('/', (req, res) => {
+    res.redirect('/login');
+});
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.get('/register', (req, res) => {
+    res.render('register');
+});
+
+app.get('/profile', passport.authenticate('jwt', { session: false }), (req, res) => {
+    res.render('profile');
+});
 
 // Error handling
 app.use((err, req, res, next) => {

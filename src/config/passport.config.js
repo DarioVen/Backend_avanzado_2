@@ -1,7 +1,6 @@
-const passport = require('passport');
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const User = require('../models/user.model');
+import passport from 'passport';
+import { Strategy as JwtStrategy } from 'passport-jwt';
+import User from '../models/user.model.js';
 
 const cookieExtractor = req => {
     let token = null;
@@ -28,4 +27,4 @@ passport.use(new JwtStrategy(jwtOptions, async (jwt_payload, done) => {
     }
 }));
 
-module.exports = passport;
+export default passport;
