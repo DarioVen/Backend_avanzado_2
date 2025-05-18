@@ -4,6 +4,15 @@
         <div id="userInfo">
             Loading...
         </div>
+        <div id="cartInfo" class="mt-4">
+            <h3>Mi Carrito</h3>
+            <div id="cartProducts">
+                Loading...
+            </div>
+            <button id="purchaseBtn" class="btn btn-success mt-3" style="display: none;">
+                Finalizar Compra
+            </button>
+        </div>
     </div>
 </div>
 
@@ -13,13 +22,66 @@
         if (response.ok) {
             const user = await response.json();
             document.getElementById('userInfo').innerHTML = `
-                <p><strong>Name:</strong> ${user.first_name} ${user.last_name}</p>
+                <p><strong>Nombre:</strong> ${user.first_name} ${user.last_name}</p>
                 <p><strong>Email:</strong> ${user.email}</p>
-                <p><strong>Age:</strong> ${user.age}</p>
-                <p><strong>Role:</strong> ${user.role}</p>
+                <p><strong>Edad:</strong> ${user.age}</p>
+                <p><strong>Rol:</strong> ${user.role}</p>
             `;
+            
+            if (user.cartId) {
+                await loadCart(user.cartId);
+            }
         } else {
             window.location.href = '/';
         }
     };
+
+    async function loadCart(cartId) {
+        try {
+            const response = await fetch(`/api/carts/${cartId}`);
+            if (response.ok) {
+                const cart = await response.json();
+                const productsHtml = cart.products.map(item => `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">${item.product.title}</h5>
+                            <p class="card-text">
+                                Cantidad: ${item.quantity}<br>
+                                Precio: $${item.product.price}
+                            </p>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('cartProducts').innerHTML = productsHtml;
+                document.getElementById('purchaseBtn').style.display = 'block';
+                
+                document.getElementById('purchaseBtn').onclick = async () => {
+                    try {
+                        const purchaseResponse = await fetch(`/api/carts/${cartId}/purchase`, {
+                            method: 'POST'
+                        });
+                        
+                        if (purchaseResponse.ok) {
+                            const result = await purchaseResponse.json();
+                            if (result.status === "success") {
+                                alert(`Compra exitosa! Ticket generado: ${result.ticket.code}`);
+                                if (result.failedProducts.length > 0) {
+                                    alert('Algunos productos no pudieron ser procesados por falta de stock');
+                                }
+                                loadCart(cartId); // Recargar el carrito
+                            }
+                        } else {
+                            const error = await purchaseResponse.json();
+                            alert(error.message || 'Error al procesar la compra');
+                        }
+                    } catch (error) {
+                        alert('Error al conectar con el servidor');
+                    }
+                };
+            }
+        } catch (error) {
+            document.getElementById('cartProducts').innerHTML = 'Error al cargar el carrito';
+        }
+    }
 </script>

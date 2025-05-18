@@ -1,6 +1,7 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy } from 'passport-jwt';
-import User from '../models/user.model.js';
+import User from '../dao/models/user.model.js';
+import config from './config.js';
 
 const cookieExtractor = req => {
     let token = null;
@@ -12,7 +13,8 @@ const cookieExtractor = req => {
 
 const jwtOptions = {
     jwtFromRequest: cookieExtractor,
-    secretOrKey: 'your_jwt_secret'
+    secretOrKey: config.jwtSecret,
+    expiresIn: config.jwtExpiration
 };
 
 passport.use(new JwtStrategy(jwtOptions, async (jwt_payload, done) => {

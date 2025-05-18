@@ -2,7 +2,10 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
-import User from '../models/user.model.js';
+import User from '../dao/models/user.model.js';
+import { UserDTO } from '../dto/user.dto.js';
+import { UserRepository } from '../dao/repositories/user.repository.js';
+import config from '../config/config.js'; 
 
 const router = express.Router();
 
@@ -36,16 +39,23 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         
-        const token = jwt.sign({ sub: user._id }, 'your_jwt_secret');
-        res.cookie('jwt', token, { httpOnly: true });
+        const token = jwt.sign(
+            { sub: user._id },
+            config.jwtSecret,
+            { expiresIn: config.jwt.expiration }
+        );
+        res.cookie('jwt', token, config.jwt.cookieOptions);
         res.json({ user });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
+const userRepository = new UserRepository();
+
 router.get('/current', passport.authenticate('jwt', { session: false }), (req, res) => {
-    res.json(req.user);
+    const userDTO = new UserDTO(req.user);
+    res.json(userDTO);
 });
 
 export default router;
